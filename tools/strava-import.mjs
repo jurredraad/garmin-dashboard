@@ -123,12 +123,18 @@ function toDetail(pts) {
       lapStart = p;
     }
   }
+  // Snelste stukken op beweegtijd, zoals Garmin: pauzes (gat in de opname zonder afstand) tellen niet mee.
+  const clock = [0];
+  for (let i = 1; i < pts.length; i++) {
+    const dt = (pts[i].ms - pts[i - 1].ms) / 1000, dd = (pts[i].dist ?? 0) - (pts[i - 1].dist ?? 0);
+    clock.push(clock[i - 1] + (dt > 10 && dd / dt < 0.5 ? 0 : dt));
+  }
   for (const [k, m] of [["1k", 1000], ["5k", 5000], ["10k", 10000]]) {
     let j = 0, bestS = Infinity;
     for (let i = 0; i < pts.length; i++) {
       while (j < pts.length && pts[j].dist - pts[i].dist < m) j++;
       if (j >= pts.length) break;
-      bestS = Math.min(bestS, (pts[j].ms - pts[i].ms) / 1000);
+      bestS = Math.min(bestS, clock[j] - clock[i]);
     }
     if (bestS < Infinity) best[k] = Math.round(bestS);
   }
@@ -178,8 +184,19 @@ if (header[C.date] !== "Datum van activiteit") throw new Error(`Onverwachte kolo
 const bounds = inferZoneBounds();
 console.log(bounds ? `Hartslagzones afgeleid uit Garmin: vanaf ${bounds.join(" / ")} bpm` : "Geen Garmin-data voor hartslagzones");
 
+// Zelfde regel als in app.js: start ±5 min (ook bij hele uren tijdzoneverschil) en zelfde sport of duur.
+const garmin = existsSync("src/data.json") ? JSON.parse(readFileSync("src/data.json", "utf8")).activities : [];
+const secs = s => Date.parse(s.replace(" ", "T") + "Z") / 1000;
+const sport = a => /run/.test(a.type) ? "run" : /walk|hik/.test(a.type) ? "walk" : a.type === "strength_training" ? "strength" : a.type;
+function sameActivity(a, b) {
+  const d = secs(a.start) - secs(b.start);
+  const start = [-2, -1, 0, 1, 2].some(h => Math.abs(d - h * 3600) <= 300);
+  const length = a.duration_s && b.duration_s && Math.abs(a.duration_s - b.duration_s) <= 0.1 * Math.max(a.duration_s, b.duration_s);
+  return start && (sport(a) === sport(b) || length);
+}
+
 const out = [];
-let skipped = 0;
+let summarized = 0;
 for (const r of rows.filter(r => r[C.id])) {
   const startMs = parseUtc(r[C.date]);
   let file = null;
@@ -191,8 +208,6 @@ for (const r of rows.filter(r => r[C.id])) {
       file = path.includes(".fit") ? readFitFile(buf) : path.includes(".gpx") ? readGpx(buf.toString("utf8")) : null;
     }
   }
-  // Opgenomen met een Garmin: die staat al in Garmin Connect en dus in data.json
-  if (file?.device === "Garmin") { skipped++; continue; }
   const pts = file?.pts ?? [];
   const hrs = pts.map(p => p.hr).filter(Boolean);
   const type = TYPES[r[C.type]] ?? r[C.type].toLowerCase();
@@ -221,8 +236,11 @@ for (const r of rows.filter(r => r[C.id])) {
     effect: null, aerobic_te: null, anaerobic_te: null, vo2max: null,
     detail: toDetail(pts),
   });
+  // Staat al in de Garmin-data: alleen een samenvatting bewaren (voor Strava-records), zonder route en grafieken.
+  const a = out[out.length - 1];
+  if (garmin.some(g => sameActivity(a, g))) { a.summary = true; a.zones = null; a.detail = a.detail && { best: a.detail.best }; summarized++; }
 }
 out.sort((a, b) => b.start.localeCompare(a.start));
 writeFileSync(OUT, JSON.stringify(out));
 const by = out.reduce((m, a) => (m[a.device] = (m[a.device] || 0) + 1, m), {});
-console.log(`${out.length} Strava-activiteiten naar ${OUT} (${skipped} van een Garmin overgeslagen):`, by);
+console.log(`${out.length} Strava-activiteiten naar ${OUT} (${summarized} al in Garmin-data, alleen samenvatting):`, by);

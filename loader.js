@@ -39,7 +39,8 @@ function runScript(src) {
 
 async function start(key) {
   // Alles eerst ontsleutelen (gooit bij een verkeerde sleutel), pas daarna de pagina aanpassen.
-  const [css, html, data, js] = await Promise.all(["css", "html", "data", "js"].map(p => open(key, p)));
+  const [css, html, data, js, strava] = await Promise.all(["css", "html", "data", "js", "strava"]
+    .map(p => manifest.files[p] ? open(key, p) : null));
   const style = document.createElement("style");
   style.textContent = text(css);
   document.head.append(style);
@@ -51,6 +52,7 @@ async function start(key) {
     await runScript(s.src);
   }
   window.DATA = JSON.parse(text(data));
+  window.STRAVA = strava ? JSON.parse(text(strava)) : [];
   // Klassiek script via Blob-URL, zodat inline handlers en globale functies van de app blijven werken.
   const url = URL.createObjectURL(new Blob([js], { type: "text/javascript" }));
   await runScript(url);

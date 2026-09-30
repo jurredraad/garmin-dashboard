@@ -1,24 +1,28 @@
 {
   "v": 1,
-  "build": "57feb3f57c8c",
+  "build": "cb3e6c712851",
   "salt": "bjhqlPoDDR4SpH12aIrPsw==",
   "iter": 600000,
   "files": {
     "css": {
-      "path": "enc/e3d661294b1d.bin",
-      "iv": "1q02lEZOiSiVzfSv"
+      "path": "enc/61634ad975ae.bin",
+      "iv": "vpHIUXSgLpMcdciH"
     },
     "html": {
-      "path": "enc/95cc606464e3.bin",
-      "iv": "m9elzzWBpLcGgh8T"
+      "path": "enc/6f885010e16b.bin",
+      "iv": "+D3vaOs8H5B8ILaH"
     },
     "data": {
       "path": "enc/578edd62d6de.bin",
       "iv": "F/YI/o7aiold7Twi"
     },
+    "strava": {
+      "path": "enc/acd52607090d.bin",
+      "iv": "D+GNhQNSO1jK2ra3"
+    },
     "js": {
-      "path": "enc/936b3d07fa1c.bin",
-      "iv": "PVAfzz3HoTkAFq9T"
+      "path": "enc/6ad7b6d2a0ba.bin",
+      "iv": "QApcbvT7YgoMO9+l"
     }
   }
 }

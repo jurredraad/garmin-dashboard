@@ -1,0 +1,4 @@
+# Leesbare bronbestanden en data: nooit publiceren (repo is openbaar via GitHub Pages)
+src/
+data.json
+.env

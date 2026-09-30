@@ -1,0 +1,24 @@
+{
+  "v": 1,
+  "build": "57feb3f57c8c",
+  "salt": "bjhqlPoDDR4SpH12aIrPsw==",
+  "iter": 600000,
+  "files": {
+    "css": {
+      "path": "enc/e3d661294b1d.bin",
+      "iv": "1q02lEZOiSiVzfSv"
+    },
+    "html": {
+      "path": "enc/95cc606464e3.bin",
+      "iv": "m9elzzWBpLcGgh8T"
+    },
+    "data": {
+      "path": "enc/578edd62d6de.bin",
+      "iv": "F/YI/o7aiold7Twi"
+    },
+    "js": {
+      "path": "enc/936b3d07fa1c.bin",
+      "iv": "PVAfzz3HoTkAFq9T"
+    }
+  }
+}
